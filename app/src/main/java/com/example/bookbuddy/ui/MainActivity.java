@@ -12,6 +12,7 @@ import com.example.bookbuddy.ui.fragment.SettingsFragment;
 import com.example.bookbuddy.util.ThemeUtil;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String KEY_SELECTED_TAB = "selected_tab";
     private ActivityMainBinding binding;
 
     @Override
@@ -20,10 +21,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment())
-                .commit();
 
         binding.bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment;
@@ -44,5 +41,17 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
             return true;
         });
+
+        // Restore last tab on theme-change recreation, default to home
+        int selectedTab = savedInstanceState != null
+                ? savedInstanceState.getInt(KEY_SELECTED_TAB, R.id.nav_home)
+                : R.id.nav_home;
+        binding.bottomNav.setSelectedItemId(selectedTab);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_SELECTED_TAB, binding.bottomNav.getSelectedItemId());
     }
 }
