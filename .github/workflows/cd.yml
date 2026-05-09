@@ -26,13 +26,6 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleRelease
 
-      - name: Sign APK (debug keystore)
-        run: |
-          $ANDROID_HOME/build-tools/36.0.0/apksigner sign \
-            --ks $HOME/.android/debug.keystore \
-            --ks-pass pass:android \
-            app/build/outputs/apk/release/app-release-unsigned.apk
-
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
         with:
