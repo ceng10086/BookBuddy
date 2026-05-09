@@ -2,7 +2,6 @@ package com.example.bookbuddy.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +31,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class RecommendFragment extends Fragment {
-    private static final String TAG = "RecommendFragment";
     private EditText preferenceInput;
     private Button btnRecommend, btnShelfRecommend;
     private RecyclerView recyclerView;
@@ -120,11 +118,9 @@ public class RecommendFragment extends Fragment {
             api.chat("Bearer " + apiKey, request).enqueue(new Callback<LlmResponse>() {
                 @Override
                 public void onResponse(Call<LlmResponse> call, Response<LlmResponse> response) {
-                    Log.d(TAG, "LLM response code: " + response.code());
                     requireActivity().runOnUiThread(() -> loadingLayout.setVisibility(View.GONE));
                     if (response.isSuccessful() && response.body() != null) {
                         String content = response.body().getContent();
-                        Log.d(TAG, "LLM content: " + content);
                         List<RecommendItem> items = parseRecommendations(content);
                         if (items.isEmpty()) {
                             requireActivity().runOnUiThread(() -> {
@@ -146,7 +142,6 @@ public class RecommendFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<LlmResponse> call, Throwable t) {
-                    Log.e(TAG, "LLM error", t);
                     requireActivity().runOnUiThread(() -> {
                         loadingLayout.setVisibility(View.GONE);
                         Toast.makeText(getContext(), "网络错误: " + t.getMessage(), Toast.LENGTH_SHORT).show();

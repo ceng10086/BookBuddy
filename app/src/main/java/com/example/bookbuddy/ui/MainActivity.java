@@ -9,13 +9,14 @@ import com.example.bookbuddy.ui.fragment.BookshelfFragment;
 import com.example.bookbuddy.ui.fragment.HomeFragment;
 import com.example.bookbuddy.ui.fragment.RecommendFragment;
 import com.example.bookbuddy.ui.fragment.SettingsFragment;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.bookbuddy.util.ThemeUtil;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtil.applyTheme(this);
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

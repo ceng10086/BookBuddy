@@ -2,7 +2,6 @@ package com.example.bookbuddy.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -20,6 +19,7 @@ import com.example.bookbuddy.network.RetrofitClient;
 import com.example.bookbuddy.network.model.LlmRequest;
 import com.example.bookbuddy.network.model.LlmResponse;
 import com.example.bookbuddy.util.PreferencesHelper;
+import com.example.bookbuddy.util.ThemeUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import java.util.Arrays;
@@ -42,6 +42,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtil.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_detail);
         db = AppDatabase.getInstance(this);
@@ -228,7 +229,6 @@ public class BookDetailActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<LlmResponse> call, Throwable t) {
-                    Log.e("BookDetail", "AI chat error", t);
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         responseText.setText("网络错误: " + t.getMessage());

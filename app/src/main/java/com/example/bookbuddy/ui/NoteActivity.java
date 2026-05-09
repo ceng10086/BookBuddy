@@ -9,31 +9,30 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bookbuddy.R;
 import com.example.bookbuddy.data.AppDatabase;
 import com.example.bookbuddy.data.entity.Note;
+import com.example.bookbuddy.util.ThemeUtil;
 
 public class NoteActivity extends AppCompatActivity {
-    private TextView bookTitleView;
     private EditText contentEdit;
-    private Button saveBtn;
     private AppDatabase db;
     private long bookId;
     private Note existingNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtil.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
         db = AppDatabase.getInstance(this);
 
-        bookTitleView = findViewById(R.id.note_book_title);
+        TextView bookTitleView = findViewById(R.id.note_book_title);
         contentEdit = findViewById(R.id.note_content);
-        saveBtn = findViewById(R.id.btn_save_note);
+        Button saveBtn = findViewById(R.id.btn_save_note);
 
         bookId = getIntent().getLongExtra("bookId", 0);
         String bookTitle = getIntent().getStringExtra("bookTitle");
         bookTitleView.setText("《" + bookTitle + "》· 笔记");
 
         loadExistingNote();
-
         saveBtn.setOnClickListener(v -> saveNote());
     }
 
