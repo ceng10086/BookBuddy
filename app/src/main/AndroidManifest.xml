@@ -41,6 +41,11 @@
             android:name=".ui.BookDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.BookBuddy" />
+
+        <activity
+            android:name=".ui.NoteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BookBuddy" />
     </application>
 
 </manifest>

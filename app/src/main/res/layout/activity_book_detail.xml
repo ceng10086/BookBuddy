@@ -110,10 +110,26 @@
             android:lineSpacingExtra="4dp" />
 
         <Button
+            android:id="@+id/btn_write_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="写笔记"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_ai_chat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="AI 聊聊这本书"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
             android:id="@+id/btn_add_to_shelf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:text="加入书柜"
             style="@style/Widget.Material3.Button" />
 

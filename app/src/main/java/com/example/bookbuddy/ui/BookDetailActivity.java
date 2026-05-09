@@ -1,17 +1,31 @@
 package com.example.bookbuddy.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.bookbuddy.R;
 import com.example.bookbuddy.data.AppDatabase;
 import com.example.bookbuddy.data.entity.Book;
+import com.example.bookbuddy.network.LlmApi;
+import com.example.bookbuddy.network.RetrofitClient;
+import com.example.bookbuddy.network.model.LlmRequest;
+import com.example.bookbuddy.network.model.LlmResponse;
+import com.example.bookbuddy.util.PreferencesHelper;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import java.util.Arrays;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class BookDetailActivity extends AppCompatActivity {
     private ImageView coverView;
@@ -19,7 +33,7 @@ public class BookDetailActivity extends AppCompatActivity {
     private TextView pagesView, descriptionView;
     private ChipGroup statusGroup;
     private Chip chipWant, chipReading, chipFinished;
-    private Button btnAddToShelf, btnSave, btnDelete;
+    private Button btnAddToShelf, btnSave, btnDelete, btnAiChat, btnWriteNote;
     private AppDatabase db;
     private Book existingBook;
     private String isbn, title, author, coverUrl, publisher;
@@ -46,6 +60,8 @@ public class BookDetailActivity extends AppCompatActivity {
         btnAddToShelf = findViewById(R.id.btn_add_to_shelf);
         btnSave = findViewById(R.id.btn_save);
         btnDelete = findViewById(R.id.btn_delete);
+        btnAiChat = findViewById(R.id.btn_ai_chat);
+        btnWriteNote = findViewById(R.id.btn_write_note);
 
         readIntent();
         displayBook();
@@ -153,6 +169,73 @@ public class BookDetailActivity extends AppCompatActivity {
                         .show();
             }
         });
+
+        btnWriteNote.setOnClickListener(v -> {
+            if (existingBook == null) {
+                Toast.makeText(this, "请先将书加入书柜", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(this, NoteActivity.class);
+            intent.putExtra("bookId", existingBook.getId());
+            intent.putExtra("bookTitle", existingBook.getTitle());
+            startActivity(intent);
+        });
+
+        btnAiChat.setOnClickListener(v -> aiChatAboutBook());
+    }
+
+    private void aiChatAboutBook() {
+        PreferencesHelper prefs = new PreferencesHelper(this);
+        String apiKey = prefs.getApiKey();
+        if (apiKey.isEmpty()) {
+            Toast.makeText(this, "请先在「设置」中配置LLM API Key", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ai_chat, null);
+        TextView responseText = dialogView.findViewById(R.id.ai_response);
+        ProgressBar progressBar = dialogView.findViewById(R.id.ai_progress);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("AI聊聊: " + (title != null ? title : "这本书"))
+                .setView(dialogView)
+                .setPositiveButton("关闭", null)
+                .create();
+        dialog.show();
+
+        String prompt = String.format("请用200字左右聊聊《%s》（作者：%s）这本书。可以包括：主题概述、适合什么人读、阅读建议。",
+                title != null ? title : "未知",
+                author != null ? author : "未知");
+
+        new Thread(() -> {
+            LlmApi api = RetrofitClient.getLlmApi(prefs.getApiEndpoint());
+            LlmRequest request = new LlmRequest(prefs.getModelName(),
+                    Arrays.asList(
+                            new LlmRequest.Message("system", "你是一位博学的文学评论家。"),
+                            new LlmRequest.Message("user", prompt)
+                    ), 0.7);
+
+            api.chat("Bearer " + apiKey, request).enqueue(new Callback<LlmResponse>() {
+                @Override
+                public void onResponse(Call<LlmResponse> call, Response<LlmResponse> response) {
+                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                    if (response.isSuccessful() && response.body() != null) {
+                        runOnUiThread(() -> responseText.setText(response.body().getContent()));
+                    } else {
+                        runOnUiThread(() -> responseText.setText("AI请求失败: " + response.code()));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<LlmResponse> call, Throwable t) {
+                    Log.e("BookDetail", "AI chat error", t);
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        responseText.setText("网络错误: " + t.getMessage());
+                    });
+                }
+            });
+        }).start();
     }
 
     private String getSelectedStatus() {
