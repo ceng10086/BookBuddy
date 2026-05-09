@@ -1,0 +1,164 @@
+package com.example.bookbuddy.ui;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
+import com.example.bookbuddy.R;
+import com.example.bookbuddy.data.AppDatabase;
+import com.example.bookbuddy.data.entity.Book;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+
+public class BookDetailActivity extends AppCompatActivity {
+    private ImageView coverView;
+    private TextView titleView, authorView, publisherView, publishDateView;
+    private TextView pagesView, descriptionView;
+    private ChipGroup statusGroup;
+    private Chip chipWant, chipReading, chipFinished;
+    private Button btnAddToShelf, btnSave, btnDelete;
+    private AppDatabase db;
+    private Book existingBook;
+    private String isbn, title, author, coverUrl, publisher;
+    private String publishDate, description;
+    private int pageCount;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_book_detail);
+        db = AppDatabase.getInstance(this);
+
+        coverView = findViewById(R.id.book_cover);
+        titleView = findViewById(R.id.book_title);
+        authorView = findViewById(R.id.book_author);
+        publisherView = findViewById(R.id.book_publisher);
+        publishDateView = findViewById(R.id.book_publish_date);
+        pagesView = findViewById(R.id.book_pages);
+        descriptionView = findViewById(R.id.book_description);
+        statusGroup = findViewById(R.id.status_group);
+        chipWant = findViewById(R.id.chip_want);
+        chipReading = findViewById(R.id.chip_reading);
+        chipFinished = findViewById(R.id.chip_finished);
+        btnAddToShelf = findViewById(R.id.btn_add_to_shelf);
+        btnSave = findViewById(R.id.btn_save);
+        btnDelete = findViewById(R.id.btn_delete);
+
+        readIntent();
+        displayBook();
+        checkExisting();
+        setupListeners();
+    }
+
+    private void readIntent() {
+        isbn = getIntent().getStringExtra("isbn");
+        title = getIntent().getStringExtra("title");
+        author = getIntent().getStringExtra("author");
+        coverUrl = getIntent().getStringExtra("coverUrl");
+        publisher = getIntent().getStringExtra("publisher");
+        publishDate = getIntent().getStringExtra("publishDate");
+        pageCount = getIntent().getIntExtra("pageCount", 0);
+        description = getIntent().getStringExtra("description");
+    }
+
+    private void displayBook() {
+        titleView.setText(title != null ? title : "未知书名");
+        authorView.setText(author != null ? author : "未知作者");
+        publisherView.setText("出版社: " + (publisher != null ? publisher : "未知"));
+        publishDateView.setText("出版日期: " + (publishDate != null ? publishDate : "未知"));
+        pagesView.setText(pageCount > 0 ? "页数: " + pageCount : "");
+        descriptionView.setText(description != null ? description : "暂无简介");
+
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            Glide.with(this).load(coverUrl).into(coverView);
+        }
+    }
+
+    private void checkExisting() {
+        new Thread(() -> {
+            Book book = db.bookDao().getBookByIsbn(isbn);
+            existingBook = book;
+            runOnUiThread(() -> {
+                if (existingBook != null) {
+                    btnAddToShelf.setVisibility(Button.GONE);
+                    btnSave.setVisibility(Button.VISIBLE);
+                    btnDelete.setVisibility(Button.VISIBLE);
+
+                    switch (existingBook.getStatus()) {
+                        case "reading": statusGroup.check(R.id.chip_reading); break;
+                        case "finished": statusGroup.check(R.id.chip_finished); break;
+                        default: statusGroup.check(R.id.chip_want); break;
+                    }
+                } else {
+                    btnAddToShelf.setVisibility(Button.VISIBLE);
+                    btnSave.setVisibility(Button.GONE);
+                    btnDelete.setVisibility(Button.GONE);
+                }
+            });
+        }).start();
+    }
+
+    private void setupListeners() {
+        btnAddToShelf.setOnClickListener(v -> {
+            new Thread(() -> {
+                String status = getSelectedStatus();
+                Book book = new Book(isbn, title, author, coverUrl,
+                        publisher, publishDate, pageCount, description);
+                book.setStatus(status);
+                long id = db.bookDao().insert(book);
+                existingBook = book;
+                existingBook.setId(id);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "已加入书柜", Toast.LENGTH_SHORT).show();
+                    btnAddToShelf.setVisibility(Button.GONE);
+                    btnSave.setVisibility(Button.VISIBLE);
+                    btnDelete.setVisibility(Button.VISIBLE);
+                });
+            }).start();
+        });
+
+        btnSave.setOnClickListener(v -> {
+            if (existingBook != null) {
+                existingBook.setStatus(getSelectedStatus());
+                new Thread(() -> {
+                    db.bookDao().update(existingBook);
+                    runOnUiThread(() -> Toast.makeText(this,
+                            "已保存", Toast.LENGTH_SHORT).show());
+                }).start();
+            }
+        });
+
+        btnDelete.setOnClickListener(v -> {
+            if (existingBook != null) {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("确认删除")
+                        .setMessage("将从书柜中移除 \"" + existingBook.getTitle() + "\"")
+                        .setPositiveButton("删除", (d, w) -> {
+                            new Thread(() -> {
+                                db.bookDao().delete(existingBook);
+                                existingBook = null;
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "已删除", Toast.LENGTH_SHORT).show();
+                                    btnAddToShelf.setVisibility(Button.VISIBLE);
+                                    btnSave.setVisibility(Button.GONE);
+                                    btnDelete.setVisibility(Button.GONE);
+                                    statusGroup.check(R.id.chip_want);
+                                });
+                            }).start();
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
+            }
+        });
+    }
+
+    private String getSelectedStatus() {
+        int id = statusGroup.getCheckedChipId();
+        if (id == R.id.chip_reading) return "reading";
+        if (id == R.id.chip_finished) return "finished";
+        return "want_read";
+    }
+}

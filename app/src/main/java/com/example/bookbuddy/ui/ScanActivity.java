@@ -73,12 +73,12 @@ public class ScanActivity extends AppCompatActivity {
                         var volumeInfo = response.body().getItems().get(0).getVolumeInfo();
                         String title = volumeInfo.getTitle();
                         String author = volumeInfo.getFirstAuthor();
-                        String desc = volumeInfo.getDescription();
                         Log.d(TAG, "Title: " + title + ", Author: " + author);
-                        Log.d(TAG, "Description: " + desc);
+                        Log.d(TAG, "Description: " + volumeInfo.getDescription());
                         Log.d(TAG, "Thumbnail: " + volumeInfo.getThumbnailUrl());
-                        Toast.makeText(ScanActivity.this,
-                                "找到: " + title + " - " + author, Toast.LENGTH_LONG).show();
+                        navigateToDetail(isbn, title, author, volumeInfo.getThumbnailUrl(),
+                                volumeInfo.getPublisher(), volumeInfo.getPublishedDate(),
+                                volumeInfo.getPageCount(), volumeInfo.getDescription());
                     } else {
                         Toast.makeText(ScanActivity.this, "未找到该书信息", Toast.LENGTH_SHORT).show();
                     }
@@ -94,5 +94,20 @@ public class ScanActivity extends AppCompatActivity {
                 Toast.makeText(ScanActivity.this, "网络错误: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void navigateToDetail(String isbn, String title, String author,
+                                   String coverUrl, String publisher, String publishDate,
+                                   int pageCount, String description) {
+        Intent intent = new Intent(this, BookDetailActivity.class);
+        intent.putExtra("isbn", isbn);
+        intent.putExtra("title", title);
+        intent.putExtra("author", author);
+        intent.putExtra("coverUrl", coverUrl);
+        intent.putExtra("publisher", publisher);
+        intent.putExtra("publishDate", publishDate);
+        intent.putExtra("pageCount", pageCount);
+        intent.putExtra("description", description);
+        startActivity(intent);
     }
 }

@@ -37,6 +37,12 @@ public interface BookDao {
     @Query("SELECT * FROM books WHERE title LIKE '%' || :query || '%' ORDER BY addedTime DESC")
     LiveData<List<Book>> searchBooks(String query);
 
+    @Query("SELECT * FROM books ORDER BY addedTime DESC")
+    List<Book> getAllBooksSync();
+
+    @Query("SELECT * FROM books WHERE status = :status ORDER BY addedTime DESC")
+    List<Book> getBooksByStatusSync(String status);
+
     @Query("SELECT COUNT(*) FROM books")
     LiveData<Integer> getBookCount();
 
