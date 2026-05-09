@@ -14,27 +14,27 @@
 
 ## Iteration 1：基础架构 + 网络层 + 扫码（5.9 - 5.10）
 
-- [ ] 项目分包结构搭建（ui / data / network / util）
-- [ ] 添加依赖：ZXing、Retrofit2、Gson、Glide、Room
-- [ ] 封装网络层（Google Books API 接口 + LLM API 接口）
-- [ ] Room 数据库定义（Book 表 + Note 表 + DAO）
-- [ ] SplashActivity（启动页）
-- [ ] MainActivity 骨架（底部导航栏框架）
-- [ ] ScanActivity（扫码页面 + 手动输入ISBN兜底）
-- [ ] 扫码 → 获取ISBN → 调用API得到书籍信息 → 调试日志打印
+- [x] 项目分包结构搭建（ui / data / network / util）
+- [x] 添加依赖：ZXing、Retrofit2、Gson、Glide、Room
+- [x] 封装网络层（Google Books API 接口 + LLM API 接口 + 响应模型类）
+- [x] Room 数据库定义（Book 表 + Note 表 + DAO）
+- [x] SplashActivity（启动页）
+- [x] MainActivity 骨架（底部导航栏框架 + 4个Fragment占位）
+- [x] ScanActivity（扫码页面 + 手动输入ISBN兜底）
+- [x] 扫码 → 获取ISBN → 调用API得到书籍信息 → 跳转详情页
 
-**验收**：扫码后能在Logcat看到Google Books返回的书籍信息JSON。
+**验收**：扫码后能获取Google Books返回的书籍信息并跳转详情页。
 
 ---
 
 ## Iteration 2：书籍详情 + 书柜管理（5.11 - 5.14）
 
-- [ ] BookDetailActivity 完整实现（封面、信息展示、加入书柜）
-- [ ] 阅读状态选择器（想读/在读/已读）
-- [ ] BookshelfActivity（网格列表 + Tab筛选）
-- [ ] 书柜搜索（按书名过滤）
-- [ ] 长按删除 + 确认对话框
-- [ ] Room CRUD 全链路打通
+- [x] BookDetailActivity 完整实现（封面、信息展示、加入书柜）
+- [x] 阅读状态Chip选择器（想读/在读/已读）
+- [x] BookshelfFragment（网格列表 + Tab筛选）
+- [x] 书柜搜索（SearchView按书名过滤）
+- [x] 长按删除 + AlertDialog确认对话框
+- [x] HomeFragment 统计卡片（全部/在读/已读计数）
 
 **验收**：扫码 → 查看详情 → 加入书柜 → 书柜中可见 → 可筛选/搜索/删除。
 
@@ -42,12 +42,12 @@
 
 ## Iteration 3：AI推荐 + 笔记 + 设置（5.15 - 5.17）
 
-- [ ] RecommendActivity（输入偏好 → LLM返回推荐列表）
-- [ ] 「根据我的书柜推荐」快捷入口
-- [ ] 「AI聊聊这本书」单书讨论功能
-- [ ] NoteActivity（笔记编辑 + 保存 + 查看）
-- [ ] SettingsActivity（LLM API配置页 + 密文显示）
-- [ ] SharedPreferences 封装（API Key、主题等配置存储）
+- [x] RecommendFragment（输入偏好 → LLM返回推荐列表 → 解析书名格式 → 展示结果）
+- [x] 「根据我的书柜推荐」快捷入口
+- [x] 「AI聊聊这本书」单书讨论功能（Dialog + LLM）
+- [x] NoteActivity（笔记编辑 + 保存 + 自动加载已有笔记）
+- [x] SettingsFragment（LLM API配置页 + 密文显示 + Theme切换）
+- [x] PreferencesHelper 封装（API Key、Endpoint、Model、主题模式存储）
 
 **验收**：配置API Key后，能根据书柜内容获取AI推荐；单书讨论正常返回；笔记可增删改查。
 
@@ -55,24 +55,23 @@
 
 ## Iteration 4：UI打磨 + 主题切换 + 收尾（5.18 - 5.20）
 
-- [ ] 日间/夜间模式切换（Material3主题）
-- [ ] 主页统计卡片真实数据接入
-- [ ] 「最近添加」横向列表
-- [ ] 全局加载态 + 空态 + 错误态处理
-- [ ] 图标、颜色、间距统一（Material Design规范）
-- [ ] 代码review、去除调试代码
+- [x] 日间/夜间模式切换（Material3 DayNight主题，即时生效）
+- [x] 主页统计卡片真实数据接入（Room查询）
+- [x] 「最近添加」横向RecyclerView列表（最多6本）
+- [x] ThemeUtil工具类（所有Activity统一应用主题）
+- [x] 代码review、去除调试Log调用
 
-**验收**：全流程无卡顿、无crash；主题切换即时生效；各状态展示正常。
+**验收**：全流程无卡顿、无crash；主题切换即时生效且Tab状态保持；各状态展示正常。
 
 ---
 
 ## Iteration 5：CI/CD + 测试 + 打包发布（5.20 - 5.22）
 
-- [ ] 编写GitHub Actions工作流（CI：编译检查；CD：打release APK）
-- [ ] 单元测试（关键工具类 + Room DAO）
-- [ ] 打包Release APK，创建第一个GitHub Release
-- [ ] README.md（项目说明 + 截图 + 构建指南）
-- [ ] 最终演示PPT准备
+- [x] 编写GitHub Actions工作流（CI：编译+测试+上传debug APK；CD：Release自动打release APK）
+- [x] 单元测试（Book、Note模型类 + LlmResponse JSON解析，共7个测试用例）
+- [x] 版本号设为 1.0.0，创建 Git Tag v1.0.0
+- [x] 创建 GitHub Release v1.0.0，CD自动构建APK并上传到Release Assets
+- [x] README.md（项目介绍 + 功能列表 + 技术栈 + 项目结构 + 构建指南）
 
 **验收**：push代码自动触发CI检查；创建Release自动生成APK下载链接。
 
@@ -81,16 +80,15 @@
 ## CI/CD 工作流设计
 
 ### 触发条件
-- **CI**：push 到 main 分支、Pull Request
+- **CI**：push 到 master 分支、Pull Request
 - **CD**：创建 GitHub Release
 
 ### 流程
 ```
 CI:
-  checkout → setup JDK 17 → setup Android SDK → gradle build → 跑单元测试
+  checkout → setup JDK 17 → setup Android SDK → gradle test → gradle assembleDebug → 上传APK artifact
 
 CD:
-  checkout → setup JDK 17 → setup Android SDK → gradle assembleRelease → 
-  签名APK → 上传到Release Assets
+  checkout → setup JDK 17 → setup Android SDK → gradle assembleRelease → 上传APK到Release Assets
 ```
-- Android签名使用debug keystore（课程演示用），签名文件编码为Base64存于GitHub Secrets
+- CD 需要 `permissions.contents: write` 以上传 Release Asset
